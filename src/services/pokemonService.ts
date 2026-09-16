@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { pokemonStore } from '../data/pokemonStore';
 import { Pokemon, CrearPokemonDTO, ActualizarPokemonDTO } from '../types/pokemon';
 
@@ -14,16 +13,20 @@ export function listarPokemon(): Pokemon[] {
 }
 
 export function obtenerPokemonPorId(id: string): Pokemon {
-  const pokemon = pokemonStore.find((p) => p.id === id);
+  const pokemon = pokemonStore.find((p) => String(p.id) === id);
   if (!pokemon) {
     throw new PokemonNotFoundError(id);
   }
   return pokemon;
 }
 
+function siguienteId(): number {
+  return pokemonStore.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+}
+
 export function crearPokemon(datos: CrearPokemonDTO): Pokemon {
   const nuevoPokemon: Pokemon = {
-    id: randomUUID(),
+    id: siguienteId(),
     ...datos
   };
   pokemonStore.push(nuevoPokemon);
@@ -37,7 +40,7 @@ export function actualizarPokemon(id: string, cambios: ActualizarPokemonDTO): Po
 }
 
 export function eliminarPokemon(id: string): void {
-  const index = pokemonStore.findIndex((p) => p.id === id);
+  const index = pokemonStore.findIndex((p) => String(p.id) === id);
   if (index === -1) {
     throw new PokemonNotFoundError(id);
   }

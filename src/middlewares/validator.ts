@@ -1,50 +1,61 @@
 import { Request, Response, NextFunction } from 'express';
-import { TIPOS_VALIDOS, ETAPAS_VALIDAS } from '../types/pokemon';
+import { TIPOS_VALIDOS } from '../types/pokemon';
 import { ValidationError } from './errorHandler';
+
+const STATS_REQUERIDAS = ['HP', 'Attack', 'Defense', 'Sp. Attack', 'Sp. Defense', 'Speed'];
 
 // Middleware personalizado #2: valida el body antes de crear o actualizar un Pokémon
 export function validarPokemon(req: Request, res: Response, next: NextFunction) {
   const esCreacion = req.method === 'POST';
-  const { nombre, tipo, nivel, movimientos, etapaEvolutiva, descripcionPokedex } = req.body;
+  const { name, type, base, species, description, profile, image } = req.body;
 
-  // En creación, los campos son obligatorios. En actualización (PUT/PATCH), solo se validan si vienen.
-  if (esCreacion || nombre !== undefined) {
-    if (typeof nombre !== 'string' || nombre.trim().length === 0) {
-      return next(new ValidationError('El campo "nombre" es obligatorio y debe ser un texto no vacío.'));
+  if (esCreacion || name !== undefined) {
+    if (!name || typeof name.english !== 'string' || name.english.trim().length === 0) {
+      return next(new ValidationError('El campo "name.english" es obligatorio y debe ser un texto no vacío.'));
     }
   }
 
-  if (esCreacion || tipo !== undefined) {
-    if (!Array.isArray(tipo) || tipo.length === 0) {
-      return next(new ValidationError('El campo "tipo" debe ser un arreglo con al menos un tipo elemental.'));
+  if (esCreacion || type !== undefined) {
+    if (!Array.isArray(type) || type.length === 0) {
+      return next(new ValidationError('El campo "type" debe ser un arreglo con al menos un tipo elemental.'));
     }
-    const tipoInvalido = tipo.find((t: string) => !TIPOS_VALIDOS.includes(t as any));
+    const tipoInvalido = type.find((t: string) => !TIPOS_VALIDOS.includes(t as any));
     if (tipoInvalido) {
       return next(new ValidationError(`Tipo elemental inválido: "${tipoInvalido}". Tipos válidos: ${TIPOS_VALIDOS.join(', ')}`));
     }
   }
 
-  if (esCreacion || nivel !== undefined) {
-    if (typeof nivel !== 'number' || nivel < 1 || nivel > 100) {
-      return next(new ValidationError('El campo "nivel" debe ser un número entre 1 y 100.'));
+  if (esCreacion || base !== undefined) {
+    if (typeof base !== 'object' || base === null) {
+      return next(new ValidationError('El campo "base" debe ser un objeto con las 6 estadísticas.'));
+    }
+    const statFaltante = STATS_REQUERIDAS.find((stat) => typeof base[stat] !== 'number');
+    if (statFaltante) {
+      return next(new ValidationError(`La estadística "${statFaltante}" es obligatoria y debe ser un número.`));
     }
   }
 
-  if (esCreacion || movimientos !== undefined) {
-    if (!Array.isArray(movimientos) || movimientos.some((m: unknown) => typeof m !== 'string')) {
-      return next(new ValidationError('El campo "movimientos" debe ser un arreglo de textos.'));
+  if (esCreacion || species !== undefined) {
+    if (typeof species !== 'string' || species.trim().length === 0) {
+      return next(new ValidationError('El campo "species" es obligatorio y debe ser un texto no vacío.'));
     }
   }
 
-  if (esCreacion || etapaEvolutiva !== undefined) {
-    if (!ETAPAS_VALIDAS.includes(etapaEvolutiva)) {
-      return next(new ValidationError(`El campo "etapaEvolutiva" debe ser una de: ${ETAPAS_VALIDAS.join(', ')}`));
+  if (esCreacion || description !== undefined) {
+    if (typeof description !== 'string' || description.trim().length === 0) {
+      return next(new ValidationError('El campo "description" es obligatorio y debe ser un texto no vacío.'));
     }
   }
 
-  if (esCreacion || descripcionPokedex !== undefined) {
-    if (typeof descripcionPokedex !== 'string' || descripcionPokedex.trim().length === 0) {
-      return next(new ValidationError('El campo "descripcionPokedex" es obligatorio y debe ser un texto no vacío.'));
+  if (esCreacion || profile !== undefined) {
+    if (typeof profile !== 'object' || profile === null) {
+      return next(new ValidationError('El campo "profile" debe ser un objeto (height, weight, ability, etc.).'));
+    }
+  }
+
+  if (esCreacion || image !== undefined) {
+    if (!image || typeof image.thumbnail !== 'string') {
+      return next(new ValidationError('El campo "image.thumbnail" es obligatorio y debe ser un texto (URL).'));
     }
   }
 

@@ -1,4 +1,5 @@
 import express, { Application } from 'express';
+import cors from 'cors';
 import pokemonRoutes from './routes/pokemonRoutes';
 import { logger } from './middlewares/logger';
 import { errorHandler } from './middlewares/errorHandler';
@@ -6,6 +7,9 @@ import { errorHandler } from './middlewares/errorHandler';
 export function crearApp(): Application {
   const app = express();
 
+  // Habilita CORS para que el frontend (corriendo en otro puerto, ej. 5500)
+  // pueda hacer fetch() a esta API sin ser bloqueado por el navegador.
+  app.use(cors());
   app.use(express.json());
   app.use(logger);
 

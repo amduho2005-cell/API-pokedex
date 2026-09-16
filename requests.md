@@ -1,6 +1,7 @@
 # Pruebas manuales — Pokédex API
 
-Todas las pruebas se hicieron contra `http://localhost:3000`.
+Todas las pruebas se hicieron contra `http://localhost:3000`, con los 898
+Pokémon reales cargados en memoria.
 
 ## 1. GET /pokemon — listar todos
 
@@ -9,26 +10,18 @@ Todas las pruebas se hicieron contra `http://localhost:3000`.
 GET /pokemon
 ```
 
-**Response — 200 OK**
+**Response — 200 OK** (extracto; son 898 objetos)
 ```json
 [
   {
-    "id": "1",
-    "nombre": "Flamichu",
-    "tipo": ["fuego", "volador"],
-    "nivel": 12,
-    "movimientos": ["Ascuas", "Placaje"],
-    "etapaEvolutiva": "básico",
-    "descripcionPokedex": "Una pequeña criatura con alas cálidas al tacto."
-  },
-  {
-    "id": "2",
-    "nombre": "Aquorbe",
-    "tipo": ["agua"],
-    "nivel": 18,
-    "movimientos": ["Pistola Agua", "Burbuja", "Hidrobomba"],
-    "etapaEvolutiva": "primera evolución",
-    "descripcionPokedex": "Vive en charcas tranquilas."
+    "id": 1,
+    "name": { "english": "Bulbasaur", "japanese": "フシギダネ" },
+    "type": ["Grass", "Poison"],
+    "base": { "HP": 45, "Attack": 49, "Defense": 49, "Sp. Attack": 65, "Sp. Defense": 65, "Speed": 45 },
+    "species": "Seed Pokémon",
+    "description": "Bulbasaur can be seen napping in bright sunlight...",
+    "profile": { "height": "0.7 m", "weight": "6.9 kg" },
+    "image": { "sprite": "...", "thumbnail": "...", "hires": "..." }
   }
 ]
 ```
@@ -37,30 +30,29 @@ GET /pokemon
 
 **Request**
 ```
-GET /pokemon/1
+GET /pokemon/25
 ```
 
 **Response — 200 OK**
 ```json
 {
-  "id": "1",
-  "nombre": "Flamichu",
-  "tipo": ["fuego", "volador"],
-  "nivel": 12,
-  "movimientos": ["Ascuas", "Placaje"],
-  "etapaEvolutiva": "básico",
-  "descripcionPokedex": "Una pequeña criatura con alas cálidas al tacto."
+  "id": 25,
+  "name": { "english": "Pikachu" },
+  "type": ["Electric"],
+  "base": { "HP": 35, "Attack": 55, "Defense": 40, "Sp. Attack": 50, "Sp. Defense": 50, "Speed": 90 },
+  "species": "Mouse Pokémon",
+  "description": "While sleeping, it generates electricity in the sacs in its cheeks..."
 }
 ```
 
 **Request con id inexistente**
 ```
-GET /pokemon/999
+GET /pokemon/9999
 ```
 
 **Response — 404 Not Found**
 ```json
-{ "error": "No se encontró ningún Pokémon con id \"999\"" }
+{ "error": "No se encontró ningún Pokémon con id \"9999\"" }
 ```
 
 ## 3. POST /pokemon — crear
@@ -71,71 +63,81 @@ POST /pokemon
 Content-Type: application/json
 
 {
-  "nombre": "Terrapup",
-  "tipo": ["tierra"],
-  "nivel": 5,
-  "movimientos": ["Excavar"],
-  "etapaEvolutiva": "básico",
-  "descripcionPokedex": "Cava túneles bajo los jardines para esconder tesoros."
+  "name": { "english": "Testmon" },
+  "type": ["Fire"],
+  "base": { "HP": 50, "Attack": 50, "Defense": 50, "Sp. Attack": 50, "Sp. Defense": 50, "Speed": 50 },
+  "species": "Test Pokémon",
+  "description": "Un Pokémon de prueba para validar el POST.",
+  "profile": { "height": "1 m", "weight": "10 kg" },
+  "image": { "sprite": "x", "thumbnail": "x", "hires": "x" }
 }
 ```
 
 **Response — 201 Created**
 ```json
 {
-  "id": "a1b2c3d4-...",
-  "nombre": "Terrapup",
-  "tipo": ["tierra"],
-  "nivel": 5,
-  "movimientos": ["Excavar"],
-  "etapaEvolutiva": "básico",
-  "descripcionPokedex": "Cava túneles bajo los jardines para esconder tesoros."
+  "id": 899,
+  "name": { "english": "Testmon" },
+  "type": ["Fire"],
+  "base": { "HP": 50, "Attack": 50, "Defense": 50, "Sp. Attack": 50, "Sp. Defense": 50, "Speed": 50 },
+  "species": "Test Pokémon",
+  "description": "Un Pokémon de prueba para validar el POST.",
+  "profile": { "height": "1 m", "weight": "10 kg" },
+  "image": { "sprite": "x", "thumbnail": "x", "hires": "x" }
 }
 ```
 
-**Request inválida (nivel fuera de rango)**
+**Request inválida (sin "name")**
+```
+POST /pokemon
+Content-Type: application/json
+
+{ "type": ["Fire"] }
+```
+
+**Response — 400 Bad Request**
+```json
+{ "error": "El campo \"name.english\" es obligatorio y debe ser un texto no vacío." }
+```
+
+**Request inválida (tipo no existe)**
 ```
 POST /pokemon
 Content-Type: application/json
 
 {
-  "nombre": "ErrorMon",
-  "tipo": ["normal"],
-  "nivel": 150,
-  "movimientos": [],
-  "etapaEvolutiva": "básico",
-  "descripcionPokedex": "..."
+  "name": { "english": "ErrorMon" },
+  "type": ["Fuego"],
+  "base": { "HP": 1, "Attack": 1, "Defense": 1, "Sp. Attack": 1, "Sp. Defense": 1, "Speed": 1 },
+  "species": "x", "description": "x",
+  "profile": {}, "image": { "thumbnail": "x" }
 }
 ```
 
 **Response — 400 Bad Request**
 ```json
-{ "error": "El campo \"nivel\" debe ser un número entre 1 y 100." }
+{ "error": "Tipo elemental inválido: \"Fuego\". Tipos válidos: Normal, Fire, Water, Grass, Electric, Ice, Fighting, Poison, Ground, Flying, Psychic, Bug, Rock, Ghost, Dragon, Dark, Steel, Fairy" }
 ```
 
 ## 4. PUT /pokemon/:id — actualizar
 
 **Request**
 ```
-PUT /pokemon/1
+PUT /pokemon/25
 Content-Type: application/json
 
 {
-  "nivel": 13,
-  "etapaEvolutiva": "primera evolución"
+  "base": { "HP": 40, "Attack": 60, "Defense": 45, "Sp. Attack": 55, "Sp. Defense": 55, "Speed": 95 }
 }
 ```
 
 **Response — 200 OK**
 ```json
 {
-  "id": "1",
-  "nombre": "Flamichu",
-  "tipo": ["fuego", "volador"],
-  "nivel": 13,
-  "movimientos": ["Ascuas", "Placaje"],
-  "etapaEvolutiva": "primera evolución",
-  "descripcionPokedex": "Una pequeña criatura con alas cálidas al tacto."
+  "id": 25,
+  "name": { "english": "Pikachu" },
+  "type": ["Electric"],
+  "base": { "HP": 40, "Attack": 60, "Defense": 45, "Sp. Attack": 55, "Sp. Defense": 55, "Speed": 95 }
 }
 ```
 
@@ -143,7 +145,7 @@ Content-Type: application/json
 
 **Request**
 ```
-DELETE /pokemon/2
+DELETE /pokemon/899
 ```
 
 **Response — 204 No Content**
@@ -151,10 +153,10 @@ DELETE /pokemon/2
 
 **Request con id ya eliminado**
 ```
-DELETE /pokemon/2
+DELETE /pokemon/899
 ```
 
 **Response — 404 Not Found**
 ```json
-{ "error": "No se encontró ningún Pokémon con id \"2\"" }
+{ "error": "No se encontró ningún Pokémon con id \"899\"" }
 ```
