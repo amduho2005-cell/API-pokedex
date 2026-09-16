@@ -57,12 +57,10 @@ h1, h2, h3, .num {
 }
 
 .shell__lens {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #dff3ff 0%, #8fd3f0 35%, #2f7fb0 100%);
-  border: 3px solid var(--cream);
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
+  object-fit: contain;
 }
 
 .shell__title {
